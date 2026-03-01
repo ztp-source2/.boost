@@ -1,0 +1,28 @@
+name: Boost Advisor
+
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: 'JSON payload for boost-advisor'
+        required: true
+        type: string
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download boost-advisor
+        run: |
+          curl https://assets.build.boostsecurity.io/boost-advisor/linux/x86_64/0.1.0-rc.7/boost-advisor \
+            -o /usr/local/bin/boost-advisor
+          chmod +x /usr/local/bin/boost-advisor
+      - name: Run boost-advisor
+        env:
+          BOOST_API_KEY: ${{ secrets.BOOST_API_TOKEN }}
+          BOOST_SCM_TOKEN: ${{ secrets.BOOST_ADV_GH_TOKEN }}
+          BOOST_LLM_MODEL: ${{ vars.BOOST_LLM_MODEL }}
+          BOOST_LLM_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PAYLOAD: ${{ inputs.payload }}
+        run: |
+          echo "$PAYLOAD" | boost-advisor -
